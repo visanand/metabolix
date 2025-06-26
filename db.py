@@ -1,26 +1,27 @@
-"""MongoDB integration using Motor with TLS and Certifi CA support."""
+"""Async MongoDB integration using Motor with TLS and certifi."""
 
-import logging
 import os
+import logging
 from typing import Any, Dict, Optional
+
 from dotenv import load_dotenv
+from motor.motor_asyncio import AsyncIOMotorClient
 import certifi
 
-from motor.motor_asyncio import AsyncIOMotorClient
-
-# Load .env
+# Load environment variables
 load_dotenv()
 
-# Logger setup
+# Configure logging
 logger = logging.getLogger(__name__)
 
-# MongoDB URI from environment
+# MongoDB connection string
 MONGODB_URI = os.getenv("MONGODB_URI")
 
-# Initialize client
+# Async client and DB handle
 client: Optional[AsyncIOMotorClient] = None
 db = None
 
+# Setup MongoDB connection with TLS
 if MONGODB_URI:
     try:
         client = AsyncIOMotorClient(
@@ -31,15 +32,13 @@ if MONGODB_URI:
             tlsAllowInvalidCertificates=os.getenv("MONGODB_ALLOW_INVALID_CERTS", "false").lower() == "true"
         )
         db = client.get_default_database()
-        logger.info("Connected to MongoDB")
+        logger.info("Connected to MongoDB successfully.")
     except Exception as e:
-        logger.error(f"MongoDB connection failed: {e}")
-        client = None
-        db = None
+        logger.error(f"MongoDB connection error: {e}")
 else:
-    logger.warning("MONGODB_URI not set in environment")
+    logger.warning("MONGODB_URI not set. Database not configured.")
 
-# === Database Operations ===
+# === Async DB Operations ===
 
 async def save_user(user: Dict[str, Any]) -> str:
     if db is None:
