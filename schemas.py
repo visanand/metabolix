@@ -11,14 +11,12 @@ class Consent(BaseModel):
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
 
 
-
 class UserInfo(BaseModel):
     name: str
     age: int
     gender: str
     location: str
     phone: Optional[str] = None
-
 
 
 class SymptomData(BaseModel):
@@ -46,4 +44,3 @@ class Summary(BaseModel):
 
 class PaymentWebhook(BaseModel):
     payload: dict
-

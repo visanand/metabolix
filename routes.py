@@ -86,4 +86,3 @@ async def payment_webhook(request: Request):
     payload = await request.json()
     await save_chat({"payment_event": payload, "time": timestamp()})
     return {"status": "ok"}
-
