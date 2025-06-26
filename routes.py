@@ -1,6 +1,3 @@
-"""API endpoints for AarogyaAI."""
-"""FastAPI route handlers for AarogyaAI."""
-
 import logging
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import PlainTextResponse
@@ -21,14 +18,6 @@ from razorpay_utils import create_payment_link, verify_signature
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
-
-
-@router.get("/")
-async def root() -> dict[str, str]:
-    """Health check endpoint."""
-    logger.debug("Health check invoked")
-    return {"status": "AarogyaAI running"}
-
 
 @router.post("/start")
 async def start_chat(payload: StartPayload):
@@ -73,6 +62,7 @@ async def whatsapp_webhook(request: Request) -> str:
     reply = await generate_response([{"role": "user", "content": message}])
     await save_chat({"input": message, "output": reply, "time": timestamp()})
     return f"<Response><Message>{reply}</Message></Response>"
+
 
 @router.post("/summary")
 async def store_summary(summary: Summary):

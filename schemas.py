@@ -42,9 +42,4 @@ class Summary(BaseModel):
 
 
 class PaymentWebhook(BaseModel):
-<<<<<<< e5mhwf-codex/build-multilingual-healthcare-assistant--aarogyaai
     payload: dict
-
-=======
-    payload: dict
->>>>>>> main
