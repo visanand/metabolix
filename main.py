@@ -1,4 +1,13 @@
-<<<<<<< e5mhwf-codex/build-multilingual-healthcare-assistant--aarogyaai
+from typing import Optional
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
+
+if __name__ == "__main__":
+    import uvicorn
+
+    port: int = int(os.getenv("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=False)
+
 """FastAPI entrypoint for AarogyaAI."""
 
 import logging
