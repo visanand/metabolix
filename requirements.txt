@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+motor
+openai
+pydantic
+python-dotenv
+razorpay
+python-multipart
