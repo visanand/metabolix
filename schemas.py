@@ -17,6 +17,7 @@ class UserInfo(BaseModel):
     phone: Optional[str] = None
 
 
+
 class SymptomData(BaseModel):
     description: str
     duration: Optional[str] = None
@@ -32,7 +33,6 @@ class StartPayload(BaseModel):
     """Payload for chat start containing consent and user info."""
     consent: Consent
     user: UserInfo
-
 
 class Summary(BaseModel):
     user_phone: Optional[str]
