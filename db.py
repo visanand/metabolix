@@ -11,7 +11,15 @@ load_dotenv()
 MONGODB_URI = os.getenv("MONGODB_URI")
 logger = logging.getLogger(__name__)
 
-client = AsyncIOMotorClient(MONGODB_URI) if MONGODB_URI else None
+if MONGODB_URI:
+    client = AsyncIOMotorClient(
+        MONGODB_URI,
+        serverSelectionTimeoutMS=10000,
+        tls=True,
+        tlsAllowInvalidCertificates=os.getenv("MONGODB_ALLOW_INVALID_CERTS", "false").lower() == "true",
+    )
+else:
+    client = None
 db = client.get_default_database() if client else None
 
 async def save_user(user: Dict[str, Any]) -> str:
@@ -41,3 +49,4 @@ async def get_user_by_phone(phone: str) -> Dict[str, Any] | None:
     user = await db.users.find_one({"phone": phone})
     logger.debug("Fetched user by phone %s: %s", phone, bool(user))
     return user
+

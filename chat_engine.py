@@ -1,4 +1,5 @@
 """OpenAI GPT-4 integration for AarogyaAI."""
+
 import logging
 import os
 from typing import Dict, List
