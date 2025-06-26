@@ -1,11 +1,17 @@
 """API endpoints for AarogyaAI."""
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.concurrency import run_in_threadpool
-
 from chat_engine import generate_response
 from db import save_user, save_chat, save_summary
-from schemas import Consent, UserInfo, SymptomData, Summary
+from schemas import (
+    Consent,
+    UserInfo,
+    SymptomData,
+    Summary,
+    PaymentWebhook,
+    StartPayload,
+    ConsultRequest,
+)
 
 from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
@@ -15,16 +21,12 @@ router = APIRouter()
 
 @router.post("/start")
 async def start_chat(payload: StartPayload):
-    consent = payload.consent
-    user = payload.user
-    if not consent.accepted:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Consent required"
-        )
-    user_dict = user.dict()
-    user_dict["consent_time"] = consent.timestamp
+    if not payload.consent.accepted:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Consent required")
+    user_dict = payload.user.dict()
+    user_dict["consent_time"] = payload.consent.timestamp
     await save_user(user_dict)
-    return {"message": f"Welcome {user.name}! How can I help you today?"}
+    return {"message": f"Welcome {payload.user.name}! How can I help you today?"}
 
 
 @router.post("/triage")
@@ -36,9 +38,16 @@ async def triage(symptom: SymptomData):
 
 
 @router.post("/consult")
-async def consult(user: UserInfo):
-    link = await create_payment_link(99, "AarogyaAI Consult")
-
+async def consult(payload: ConsultRequest, consult_type: str = "audio"):
+    amount = 99 if consult_type == "audio" else 249
+    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult")
+    await save_chat({
+        "user": payload.user.dict(),
+        "symptoms": payload.symptoms.dict(),
+        "consult_type": consult_type,
+        "requested_at": timestamp(),
+        "payment_link": link,
+    })
     return {"payment_link": link}
 
 

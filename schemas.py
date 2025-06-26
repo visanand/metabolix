@@ -17,12 +17,6 @@ class UserInfo(BaseModel):
     phone: Optional[str] = None
 
 
-class StartPayload(BaseModel):
-    """Payload for the `/start` route combining consent and user info."""
-
-    consent: Consent
-    user: UserInfo
-
 
 class SymptomData(BaseModel):
     description: str
@@ -35,11 +29,17 @@ class ConsultRequest(BaseModel):
     symptoms: SymptomData
 
 
+class StartPayload(BaseModel):
+    """Payload for chat start containing consent and user info."""
+    consent: Consent
+    user: UserInfo
+
 class Summary(BaseModel):
     user_phone: Optional[str]
     summary: str
     consult_id: Optional[str] = None
 
 
-
+class PaymentWebhook(BaseModel):
+    payload: dict
 

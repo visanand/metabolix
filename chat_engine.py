@@ -4,7 +4,13 @@ import os
 from typing import List, Dict
 
 import openai
+<<<<<<< yw4l2s-codex/build-multilingual-healthcare-assistant--aarogyaai
+from dotenv import load_dotenv
 
+load_dotenv()
+=======
+
+>>>>>>> main
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 SYSTEM_PROMPT = (
