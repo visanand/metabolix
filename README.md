@@ -58,6 +58,11 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+### 5. Run tests
+```bash
+pytest
+```
+
 ---
 
 ## 💬 Chatbot Workflow
@@ -115,4 +120,4 @@ For the complete design prompt guiding AarogyaAI's features and compliance goals
 ---
 
 ## 🏁 License
-MIT License
+This project is licensed under the [MIT License](LICENSE).

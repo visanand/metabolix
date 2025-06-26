@@ -43,4 +43,3 @@ class Summary(BaseModel):
 
 class PaymentWebhook(BaseModel):
     payload: dict
-
