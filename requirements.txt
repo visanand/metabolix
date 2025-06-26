@@ -5,7 +5,3 @@ openai
 pydantic
 python-dotenv
 razorpay
-<<<<<<< yw4l2s-codex/build-multilingual-healthcare-assistant--aarogyaai
-=======
-pytest
->>>>>>> main
