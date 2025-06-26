@@ -9,7 +9,8 @@ CLIENT = razorpay.Client(
     auth=(os.getenv("RAZORPAY_KEY_ID"), os.getenv("RAZORPAY_KEY_SECRET"))
 )
 
-async def create_payment_link(amount: int, description: str) -> str:
+def create_payment_link(amount: int, description: str) -> str:
+    """Return a short payment URL from Razorpay."""
     data = {
         "amount": amount * 100,  # Razorpay accepts paise
         "currency": "INR",

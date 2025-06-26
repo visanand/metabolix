@@ -1,6 +1,7 @@
 """API endpoints for AarogyaAI."""
 
 from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 
 from chat_engine import generate_response
 from db import save_user, save_chat, save_summary
@@ -31,7 +32,7 @@ async def triage(symptom: SymptomData):
 
 @router.post("/consult")
 async def consult(request: UserInfo):
-    link = await create_payment_link(99, "AarogyaAI Consult")
+    link = await run_in_threadpool(create_payment_link, 99, "AarogyaAI Consult")
     return {"payment_link": link}
 
 
