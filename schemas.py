@@ -34,6 +34,5 @@ class Summary(BaseModel):
     consult_id: Optional[str] = None
 
 
-class PaymentWebhook(BaseModel):
-    payload: dict
+
 

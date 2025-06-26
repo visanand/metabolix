@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from chat_engine import generate_response
 from db import save_user, save_chat, save_summary
-from schemas import Consent, UserInfo, SymptomData, Summary, PaymentWebhook
+from schemas import Consent, UserInfo, SymptomData, Summary
 from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
 
@@ -30,7 +30,7 @@ async def triage(symptom: SymptomData):
 
 
 @router.post("/consult")
-async def consult(request: UserInfo):
+async def consult(user: UserInfo):
     link = await create_payment_link(99, "AarogyaAI Consult")
     return {"payment_link": link}
 
