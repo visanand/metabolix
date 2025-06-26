@@ -39,9 +39,13 @@ Create a `.env` file with the following:
 ```env
 OPENAI_API_KEY=your_openai_key
 MONGODB_URI=your_mongodb_connection_string
+MONGODB_ALLOW_INVALID_CERTS=false
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
 BOT_NAME=AarogyaAI
+RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
+LOG_LEVEL=INFO
+PORT=8000
 ```
 
 ### 3. Install dependencies
@@ -102,6 +106,11 @@ Built with ❤️ to serve India's growing need for accessible, digital-first he
 ## 📫 Contact / Collaboration
 Interested in contributing, testing, or partnering?
 Email us at [contact@aarogyaai.in](mailto:contact@aarogyaai.in)
+
+---
+
+## 📜 Prompt Specification
+For the complete design prompt guiding AarogyaAI's features and compliance goals, see [PROMPT.md](PROMPT.md).
 
 ---
 
