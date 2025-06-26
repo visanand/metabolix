@@ -30,4 +30,3 @@ def verify_signature(body: bytes, signature: str) -> bool:
         return True
     except razorpay.errors.SignatureVerificationError:
         return False
-
