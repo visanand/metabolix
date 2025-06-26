@@ -41,4 +41,3 @@ async def get_user_by_phone(phone: str) -> Dict[str, Any] | None:
     user = await db.users.find_one({"phone": phone})
     logger.debug("Fetched user by phone %s: %s", phone, bool(user))
     return user
-

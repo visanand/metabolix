@@ -1,5 +1,3 @@
-"""FastAPI route handlers for AarogyaAI."""
-
 import logging
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import PlainTextResponse
@@ -19,9 +17,7 @@ from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
 
 logger = logging.getLogger(__name__)
-
 router = APIRouter()
-
 
 @router.post("/start")
 async def start_chat(payload: StartPayload):
@@ -57,7 +53,6 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     })
     return {"payment_link": link}
 
-
 @router.post("/whatsapp", response_class=PlainTextResponse)
 async def whatsapp_webhook(request: Request) -> str:
     """Minimal Twilio-style WhatsApp webhook handler."""
@@ -85,4 +80,3 @@ async def payment_webhook(request: Request):
     payload = await request.json()
     await save_chat({"payment_event": payload, "time": timestamp()})
     return {"status": "ok"}
-
