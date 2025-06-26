@@ -105,5 +105,10 @@ Email us at [contact@aarogyaai.in](mailto:contact@aarogyaai.in)
 
 ---
 
+## 📜 Prompt Specification
+For the complete design prompt guiding AarogyaAI's features and compliance goals, see [PROMPT.md](PROMPT.md).
+
+---
+
 ## 🏁 License
 MIT License
