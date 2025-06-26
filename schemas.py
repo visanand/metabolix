@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 
-
 class Consent(BaseModel):
     accepted: bool
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())

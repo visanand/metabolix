@@ -14,7 +14,6 @@ from schemas import (
     StartPayload,
     ConsultRequest,
 )
-
 from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
 
@@ -58,8 +57,6 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     })
     return {"payment_link": link}
 
-
-
 @router.post("/whatsapp", response_class=PlainTextResponse)
 async def whatsapp_webhook(request: Request) -> str:
     """Minimal Twilio-style WhatsApp webhook handler."""
@@ -68,8 +65,6 @@ async def whatsapp_webhook(request: Request) -> str:
     reply = await generate_response([{"role": "user", "content": message}])
     await save_chat({"input": message, "output": reply, "time": timestamp()})
     return f"<Response><Message>{reply}</Message></Response>"
-
-
 
 @router.post("/summary")
 async def store_summary(summary: Summary):
