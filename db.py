@@ -4,10 +4,20 @@ import os
 from typing import Any, Dict
 
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import ConfigurationError
 
 MONGODB_URI = os.getenv("MONGODB_URI")
 client = AsyncIOMotorClient(MONGODB_URI)
-db = client.get_default_database()
+
+try:
+    db = client.get_default_database()
+except ConfigurationError:
+    db_name = os.getenv("MONGODB_DB_NAME")
+    if not db_name:
+        raise RuntimeError(
+            "MONGODB_DB_NAME not set and database name missing from MONGODB_URI"
+        )
+    db = client[db_name]
 
 async def save_user(user: Dict[str, Any]) -> str:
     res = await db.users.insert_one(user)
