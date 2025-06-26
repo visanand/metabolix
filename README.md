@@ -54,6 +54,20 @@ pip install -r requirements.txt
 uvicorn main:app --reload
 ```
 
+### Example request to `/start`
+```json
+{
+  "consent": {"accepted": true, "timestamp": "2024-01-01T12:00:00Z"},
+  "user": {
+    "name": "Asha",
+    "age": 28,
+    "gender": "F",
+    "location": "Pune",
+    "phone": "9876543210"
+  }
+}
+```
+
 ---
 
 ## 💬 Chatbot Workflow
