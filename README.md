@@ -38,7 +38,8 @@ cd aarogyaai
 Create a `.env` file with the following:
 ```env
 OPENAI_API_KEY=your_openai_key
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=your_mongodb_connection_string  # include DB name, e.g. mongodb+srv://user:pass@host/dbname
+MONGODB_DB_NAME=your_db_name
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
 BOT_NAME=AarogyaAI
@@ -52,6 +53,11 @@ pip install -r requirements.txt
 ### 4. Run the API server
 ```bash
 uvicorn main:app --reload
+```
+
+### 5. Run tests
+```bash
+pytest
 ```
 
 ---
@@ -111,4 +117,4 @@ For the complete design prompt guiding AarogyaAI's features and compliance goals
 ---
 
 ## 🏁 License
-MIT License
+This project is licensed under the [MIT License](LICENSE).
