@@ -5,9 +5,11 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 
+
 class Consent(BaseModel):
     accepted: bool
     timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
 
 
 class UserInfo(BaseModel):
@@ -16,6 +18,7 @@ class UserInfo(BaseModel):
     gender: str
     location: str
     phone: Optional[str] = None
+
 
 
 class SymptomData(BaseModel):
