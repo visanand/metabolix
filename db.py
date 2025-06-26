@@ -1,26 +1,45 @@
-"""MongoDB integration using Motor."""
+"""MongoDB integration using Motor with TLS and Certifi CA support."""
 
 import logging
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from dotenv import load_dotenv
+import certifi
 
 from motor.motor_asyncio import AsyncIOMotorClient
 
+# Load .env
 load_dotenv()
-MONGODB_URI = os.getenv("MONGODB_URI")
+
+# Logger setup
 logger = logging.getLogger(__name__)
 
+# MongoDB URI from environment
+MONGODB_URI = os.getenv("MONGODB_URI")
+
+# Initialize client
+client: Optional[AsyncIOMotorClient] = None
+db = None
+
 if MONGODB_URI:
-    client = AsyncIOMotorClient(
-        MONGODB_URI,
-        serverSelectionTimeoutMS=10000,
-        tls=True,
-        tlsAllowInvalidCertificates=os.getenv("MONGODB_ALLOW_INVALID_CERTS", "false").lower() == "true",
-    )
+    try:
+        client = AsyncIOMotorClient(
+            MONGODB_URI,
+            serverSelectionTimeoutMS=10000,
+            tls=True,
+            tlsCAFile=certifi.where(),
+            tlsAllowInvalidCertificates=os.getenv("MONGODB_ALLOW_INVALID_CERTS", "false").lower() == "true"
+        )
+        db = client.get_default_database()
+        logger.info("Connected to MongoDB")
+    except Exception as e:
+        logger.error(f"MongoDB connection failed: {e}")
+        client = None
+        db = None
 else:
-    client = None
-db = client.get_default_database() if client else None
+    logger.warning("MONGODB_URI not set in environment")
+
+# === Database Operations ===
 
 async def save_user(user: Dict[str, Any]) -> str:
     if db is None:
@@ -43,10 +62,9 @@ async def save_summary(summary: Dict[str, Any]) -> str:
     logger.info("Saved summary with id %s", res.inserted_id)
     return str(res.inserted_id)
 
-async def get_user_by_phone(phone: str) -> Dict[str, Any] | None:
+async def get_user_by_phone(phone: str) -> Optional[Dict[str, Any]]:
     if db is None:
         raise RuntimeError("Database not configured")
     user = await db.users.find_one({"phone": phone})
     logger.debug("Fetched user by phone %s: %s", phone, bool(user))
     return user
-
