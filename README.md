@@ -117,4 +117,4 @@ For the complete design prompt guiding AarogyaAI's features and compliance goals
 ---
 
 ## 🏁 License
-MIT License
+This project is licensed under the [MIT License](LICENSE).
