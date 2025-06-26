@@ -6,3 +6,4 @@ pydantic
 python-dotenv
 razorpay
 python-multipart
+certifi>=2023.7.22
