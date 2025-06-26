@@ -1,8 +1,12 @@
 fastapi
-uvicorn
+uvicorn[standard]
 motor
 openai
 pydantic
 python-dotenv
 razorpay
 python-multipart
+twilio
+redis
+openai>=1.0
+langdetect
