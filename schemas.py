@@ -17,6 +17,13 @@ class UserInfo(BaseModel):
     phone: Optional[str] = None
 
 
+class StartPayload(BaseModel):
+    """Payload for the `/start` route combining consent and user info."""
+
+    consent: Consent
+    user: UserInfo
+
+
 class SymptomData(BaseModel):
     description: str
     duration: Optional[str] = None

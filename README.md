@@ -38,7 +38,8 @@ cd aarogyaai
 Create a `.env` file with the following:
 ```env
 OPENAI_API_KEY=your_openai_key
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=your_mongodb_connection_string  # include DB name, e.g. mongodb+srv://user:pass@host/dbname
+MONGODB_DB_NAME=your_db_name
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
 BOT_NAME=AarogyaAI
