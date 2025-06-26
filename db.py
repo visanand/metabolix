@@ -25,3 +25,4 @@ async def save_summary(summary: Dict[str, Any]) -> str:
 
 async def get_user_by_phone(phone: str) -> Dict[str, Any] | None:
     return await db.users.find_one({"phone": phone})
+

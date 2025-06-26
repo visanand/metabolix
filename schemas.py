@@ -2,11 +2,14 @@
 
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from datetime import datetime
+
 
 
 class Consent(BaseModel):
     accepted: bool
-    timestamp: str
+    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+
 
 
 class UserInfo(BaseModel):
@@ -33,6 +36,7 @@ class StartPayload(BaseModel):
     """Payload for chat start containing consent and user info."""
     consent: Consent
     user: UserInfo
+
 
 class Summary(BaseModel):
     user_phone: Optional[str]
