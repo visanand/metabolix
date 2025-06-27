@@ -19,6 +19,7 @@ from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
 from db import db
 from motor.motor_asyncio import AsyncIOMotorDatabase
+from twilio.twiml.messaging_response import MessagingResponse
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +71,9 @@ async def whatsapp_webhook(request: Request) -> str:
     print("🔍 WhatsApp webhook DB type:", type(db))
     assert isinstance(db, AsyncIOMotorDatabase), "❌ You're not using Motor in this handler"
     await save_chat({"input": message, "output": reply, "time": timestamp()})
-    return f"<Response><Message>{reply}</Message></Response>"
+    response = MessagingResponse()
+    response.message(reply)
+    return Response(content=str(response), media_type="application/xml")
 
 
 @router.post("/summary")
