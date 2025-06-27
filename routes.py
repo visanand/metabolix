@@ -79,10 +79,28 @@ async def store_summary(summary: Summary):
 @router.post("/payment-webhook")
 async def payment_webhook(request: Request):
     signature = request.headers.get("X-Razorpay-Signature")
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing Razorpay signature")
+
     body = await request.body()
-    if not verify_signature(body, signature or ""):
+
+    if not verify_signature(body, signature):
         raise HTTPException(status_code=400, detail="Invalid signature")
+
     payload = await request.json()
-    await save_chat({"payment_event": payload, "time": timestamp()})
+    event = payload.get("event")
+    entity = payload.get("payload", {}).get("payment", {}).get("entity")
+
+    if not event or not entity:
+        raise HTTPException(status_code=400, detail="Invalid Razorpay payload")
+
+    await save_chat({
+        "event": event,
+        "entity": entity,
+        "raw_payload": payload,
+        "time": timestamp()
+    })
+
     return {"status": "ok"}
+
 
