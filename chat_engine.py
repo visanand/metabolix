@@ -13,7 +13,8 @@ logger = logging.getLogger(__name__)
 
 PAYMENT_PLACEHOLDER = "<PAYMENT_LINK>"
 
-SYSTEM_PROMPT = f"""
+SYSTEM_PROMPT_TEMPLATE = f"""
+
 You are an AI health assistant on WhatsApp for a primary care service in India.
 Your goal is to follow this workflow with each user:
 
@@ -41,12 +42,13 @@ Your goal is to follow this workflow with each user:
 
 Always say:
 **This is not a diagnosis. Consult a doctor if unsure.**
-Respond in short, clear WhatsApp-friendly format.
+Respond in short, clear WhatsApp-friendly format in {{language}}.
 """
 
-async def generate_response(messages: List[Dict[str, str]]) -> str:
+async def generate_response(messages: List[Dict[str, str]], language: str = "English") -> str:
     """Call OpenAI's API and return the assistant's reply."""
-    chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(language=language)
+    chat_messages = [{"role": "system", "content": system_prompt}] + messages
     try:
         resp = await client.chat.completions.create(
             model="gpt-4",

@@ -5,7 +5,13 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
 
 from chat_engine import generate_response, PAYMENT_PLACEHOLDER
-from db import save_user, save_chat, save_summary, get_user_by_phone
+from db import (
+    save_user,
+    save_chat,
+    save_summary,
+    get_user_by_phone,
+    update_user_language,
+)
 from schemas import (
     Consent,
     UserInfo,
@@ -14,7 +20,7 @@ from schemas import (
     StartPayload,
     ConsultRequest,
 )
-from utils import timestamp
+from utils import timestamp, detect_language
 from razorpay_utils import create_payment_link, verify_signature
 from session_store import get_session, save_session
 from twilio.twiml.messaging_response import MessagingResponse
@@ -65,6 +71,12 @@ async def whatsapp_webhook(request: Request):
     sender = form["From"].split(":")[-1]  # Extract phone
     message = form["Body"].strip()
 
+    language = detect_language(message)
+    try:
+        await update_user_language(sender, language)
+    except RuntimeError:
+        pass
+
     session = await get_session(sender)
 
     if not session:
@@ -80,7 +92,8 @@ async def whatsapp_webhook(request: Request):
     session.append({"role": "user", "content": message})
 
     try:
-        reply = await generate_response(session)
+        reply = await generate_response(session, language)
+
 
         if PAYMENT_PLACEHOLDER in reply:
             link = await create_payment_link(99, "AarogyaAI consult")
