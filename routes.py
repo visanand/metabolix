@@ -4,7 +4,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
 
-from chat_engine import generate_response
+from chat_engine import generate_response, PAYMENT_PLACEHOLDER
 from db import save_user, save_chat, save_summary
 from schemas import (
     Consent,
@@ -71,6 +71,9 @@ async def whatsapp_webhook(request: Request):
 
     try:
         reply = await generate_response(session)
+        if PAYMENT_PLACEHOLDER in reply:
+            link = await create_payment_link(99, "AarogyaAI consult")
+            reply = reply.replace(PAYMENT_PLACEHOLDER, link)
         session.append({"role": "assistant", "content": reply})
     except Exception:
         reply = "Sorry, something went wrong. Please try again."
