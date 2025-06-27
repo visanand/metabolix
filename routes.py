@@ -94,6 +94,7 @@ async def whatsapp_webhook(request: Request):
     try:
         reply = await generate_response(session, language)
 
+
         if PAYMENT_PLACEHOLDER in reply:
             link = await create_payment_link(99, "AarogyaAI consult")
             reply = reply.replace(PAYMENT_PLACEHOLDER, link)
