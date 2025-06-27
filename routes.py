@@ -61,19 +61,33 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     return {"payment_link": link}
 
 
-@router.post("/whatsapp", response_class=PlainTextResponse)
-async def whatsapp_webhook(request: Request) -> str:
-    """Minimal Twilio-style WhatsApp webhook handler."""
+@router.post("/whatsapp")
+async def whatsapp_webhook(request: Request):
     form = await request.form()
-    message = form.get("Body", "")
-    logger.debug("WhatsApp message received: %s", message)
-    reply = await generate_response([{"role": "user", "content": message}])
-    print("🔍 WhatsApp webhook DB type:", type(db))
-    assert isinstance(db, AsyncIOMotorDatabase), "❌ You're not using Motor in this handler"
-    await save_chat({"input": message, "output": reply, "time": timestamp()})
-    response = MessagingResponse()
-    response.message(reply)
-    return Response(content=str(response), media_type="application/xml")
+    sender = form["From"].split(":")[-1]  # Extract phone
+    message = form["Body"].strip()
+
+    if sender not in user_sessions:
+        user_sessions[sender] = [{"role": "system", "content": SYSTEM_PROMPT}]
+
+    # Append user message
+    user_sessions[sender].append({"role": "user", "content": message})
+
+    # Get reply
+    try:
+        reply = await get_chatgpt_reply(user_sessions[sender])
+        user_sessions[sender].append({"role": "assistant", "content": reply})
+    except Exception as e:
+        reply = "Sorry, something went wrong. Please try again."
+        user_sessions[sender].append({"role": "assistant", "content": reply})
+
+    # Save interaction to DB
+    await save_chat({"phone": sender, "input": message, "output": reply})
+
+    # Twilio response
+    resp = MessagingResponse()
+    resp.message(reply)
+    return Response(content=str(resp), media_type="application/xml")
 
 
 @router.post("/summary")
