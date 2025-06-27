@@ -2,7 +2,7 @@
 
 import logging
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 
 from chat_engine import generate_response
 from db import save_user, save_chat, save_summary
@@ -11,14 +11,13 @@ from schemas import (
     UserInfo,
     SymptomData,
     Summary,
-    PaymentWebhook,
     StartPayload,
     ConsultRequest,
 )
 from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
 from db import db
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from session_store import get_session, save_session
 from twilio.twiml.messaging_response import MessagingResponse
 
 logger = logging.getLogger(__name__)
@@ -67,24 +66,19 @@ async def whatsapp_webhook(request: Request):
     sender = form["From"].split(":")[-1]  # Extract phone
     message = form["Body"].strip()
 
-    if sender not in user_sessions:
-        user_sessions[sender] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    session = await get_session(sender)
+    session.append({"role": "user", "content": message})
 
-    # Append user message
-    user_sessions[sender].append({"role": "user", "content": message})
-
-    # Get reply
     try:
-        reply = await get_chatgpt_reply(user_sessions[sender])
-        user_sessions[sender].append({"role": "assistant", "content": reply})
-    except Exception as e:
+        reply = await generate_response(session)
+        session.append({"role": "assistant", "content": reply})
+    except Exception:
         reply = "Sorry, something went wrong. Please try again."
-        user_sessions[sender].append({"role": "assistant", "content": reply})
+        session.append({"role": "assistant", "content": reply})
 
-    # Save interaction to DB
+    await save_session(sender, session)
     await save_chat({"phone": sender, "input": message, "output": reply})
 
-    # Twilio response
     resp = MessagingResponse()
     resp.message(reply)
     return Response(content=str(resp), media_type="application/xml")
