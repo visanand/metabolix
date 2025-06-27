@@ -18,11 +18,11 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy app files
-COPY . .
-
 # Uninstall pymongo to prevent conflicts with Motor
 RUN pip uninstall -y pymongo || true
+
+# Copy app files
+COPY . .
 
 # Start the app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
