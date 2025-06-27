@@ -67,3 +67,11 @@ async def get_user_by_phone(phone: str) -> Optional[Dict[str, Any]]:
     user = await db.users.find_one({"phone": phone})
     logger.debug("Fetched user by phone %s: %s", phone, bool(user))
     return user
+
+
+async def update_user_language(phone: str, language: str) -> None:
+    """Store the last used language for a user."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    await db.users.update_one({"phone": phone}, {"$set": {"language": language}})
+    logger.debug("Updated language for %s to %s", phone, language)
