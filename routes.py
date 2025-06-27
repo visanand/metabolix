@@ -17,6 +17,8 @@ from schemas import (
 )
 from utils import timestamp
 from razorpay_utils import create_payment_link, verify_signature
+from db import db
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,8 @@ async def whatsapp_webhook(request: Request) -> str:
     message = form.get("Body", "")
     logger.debug("WhatsApp message received: %s", message)
     reply = await generate_response([{"role": "user", "content": message}])
+    print("🔍 WhatsApp webhook DB type:", type(db))
+    assert isinstance(db, AsyncIOMotorDatabase), "❌ You're not using Motor in this handler"
     await save_chat({"input": message, "output": reply, "time": timestamp()})
     return f"<Response><Message>{reply}</Message></Response>"
 
