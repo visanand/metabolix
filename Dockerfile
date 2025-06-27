@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Uninstall pymongo to prevent conflicts with Motor
-RUN pip uninstall -y pymongo || true
+# RUN pip uninstall -y pymongo || true
 
 # Copy app files
 COPY . .
