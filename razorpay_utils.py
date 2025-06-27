@@ -29,7 +29,7 @@ async def create_payment_link(amount: int, description: str) -> str:
 
 def verify_signature(body: bytes, signature: str) -> bool:
     try:
-        razorpay.Utility.verify_webhook_signature(
+        CLIENT.utility.verify_webhook_signature(
             body, signature, os.getenv("RAZORPAY_WEBHOOK_SECRET")
         )
         logger.debug("Payment webhook signature valid")
