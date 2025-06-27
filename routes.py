@@ -66,7 +66,6 @@ async def whatsapp_webhook(request: Request):
     message = form["Body"].strip()
 
     session = await get_session(sender)
-
     if not session:
         user = await get_user_by_phone(sender)
         if user:
