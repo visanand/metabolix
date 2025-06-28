@@ -116,3 +116,13 @@ async def record_payment(phone: str, payment: Dict[str, Any]) -> None:
         {"$push": {"payments": payment}},
         upsert=True,
     )
+    
+
+async def mark_payment_paid(phone: str, link_id: str, payment_id: str) -> None:
+    """Update a pending payment's status to paid."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    await db.users.update_one(
+        {"phone": phone, "payments.link_id": link_id},
+        {"$set": {"payments.$.status": "paid", "payments.$.payment_id": payment_id}},
+    )

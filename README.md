@@ -25,6 +25,8 @@
 - MongoDB-based storage and retrieval of patient chats & summaries
 - Per-user conversation history with payment logs
 - Automatic language detection with multilingual replies
+- Automatic payment confirmation with transaction ID
+- Payment screenshot verification
 - Designed for WhatsApp, mobile, and future voice integrations
 
 ---
@@ -50,6 +52,9 @@ BOT_NAME=AarogyaAI
 RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 LOG_LEVEL=INFO
 PORT=8000
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_token
+TWILIO_WHATSAPP_NUMBER=14155238886
 ```
 
 ### 3. Install dependencies

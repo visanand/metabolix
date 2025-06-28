@@ -1,6 +1,7 @@
 """FastAPI route handlers for AarogyaAI."""
 
 import logging
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
 
@@ -13,6 +14,7 @@ from db import (
     update_user_language,
     append_chat,
     record_payment,
+    mark_payment_paid,
 )
 from schemas import (
     Consent,
@@ -22,14 +24,46 @@ from schemas import (
     StartPayload,
     ConsultRequest,
 )
-from utils import timestamp, detect_language
-from razorpay_utils import create_payment_link, verify_signature
+from utils import timestamp, detect_language, send_whatsapp_message
+from razorpay_utils import (
+    create_payment_link,
+    verify_signature,
+    is_payment_complete,
+)
 from session_store import get_session, save_session
 from twilio.twiml.messaging_response import MessagingResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+async def confirm_pending_payment(phone: str) -> Optional[str]:
+    """Check if user has a pending payment that is now paid."""
+    user = await get_user_by_phone(phone)
+    if not user:
+        return None
+    payments = user.get("payments", [])
+    for p in reversed(payments):
+        if p.get("status") == "pending" and p.get("link_id"):
+            info = await is_payment_complete(p["link_id"])
+            if info:
+                await mark_payment_paid(phone, p["link_id"], info["payment_id"])
+                await record_payment(
+                    phone,
+                    {
+                        "payment_id": info["payment_id"],
+                        "amount": info["amount"],
+                        "status": "paid",
+                        "time": timestamp(),
+                    },
+                )
+                msg = (
+                    f"Payment confirmed. Transaction ID: {info['payment_id']}. "
+                    "A doctor will reach you within 24 hours."
+                )
+                return msg
+    return None
 
 
 @router.post("/start")
@@ -62,9 +96,19 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
         "symptoms": payload.symptoms.dict(),
         "consult_type": consult_type,
         "requested_at": timestamp(),
-        "payment_link": link,
+        "payment_link": link["url"],
     })
-    return {"payment_link": link}
+    await record_payment(
+        payload.user.phone,
+        {
+            "amount": amount,
+            "link": link["url"],
+            "link_id": link["id"],
+            "status": "pending",
+            "time": timestamp(),
+        },
+    )
+    return {"payment_link": link["url"]}
 
 
 @router.post("/whatsapp")
@@ -72,6 +116,7 @@ async def whatsapp_webhook(request: Request):
     form = await request.form()
     sender = form["From"].split(":")[-1]  # Extract phone
     message = form["Body"].strip()
+    num_media = int(form.get("NumMedia", 0))
 
     language = detect_language(message)
     try:
@@ -80,6 +125,8 @@ async def whatsapp_webhook(request: Request):
         pass
 
     session = await get_session(sender)
+
+
     if not session:
         user = await get_user_by_phone(sender)
         if user:
@@ -90,18 +137,37 @@ async def whatsapp_webhook(request: Request):
             )
             session.append({"role": "system", "content": meta})
 
-    session.append({"role": "user", "content": message})
+    session.append({"role": "user", "content": message or "<media>"})
+
+    confirmation = await confirm_pending_payment(sender)
+    if num_media > 0 and confirmation:
+        session.append({"role": "assistant", "content": confirmation})
+        await save_session(sender, session)
+        await append_chat(sender, "<media>", confirmation, timestamp())
+        await save_chat({"phone": sender, "input": "<media>", "output": confirmation})
+        resp = MessagingResponse()
+        resp.message(confirmation)
+        return Response(content=str(resp), media_type="application/xml")
+
 
     try:
         reply = await generate_response(session, language)
 
         if PAYMENT_PLACEHOLDER in reply:
             link = await create_payment_link(99, "AarogyaAI consult", sender)
-            reply = reply.replace(PAYMENT_PLACEHOLDER, link)
+            reply = reply.replace(PAYMENT_PLACEHOLDER, link["url"])
             await record_payment(
                 sender,
-                {"amount": 99, "link": link, "status": "pending", "time": timestamp()},
+                {
+                    "amount": 99,
+                    "link": link["url"],
+                    "link_id": link["id"],
+                    "status": "pending",
+                    "time": timestamp(),
+                },
             )
+        if confirmation:
+            reply = f"{confirmation}\n\n{reply}"
         session.append({"role": "assistant", "content": reply})
     except Exception:
         reply = "Sorry, something went wrong. Please try again."
@@ -159,6 +225,11 @@ async def payment_webhook(request: Request):
                 "time": timestamp(),
             },
         )
+        await send_whatsapp_message(
+            contact,
+            f"Payment confirmed. Transaction ID: {entity.get('id')}. A doctor will reach you within 24 hours.",
+        )
+
 
     return {"status": "ok"}
 
