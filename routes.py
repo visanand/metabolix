@@ -126,6 +126,7 @@ async def whatsapp_webhook(request: Request):
 
     session = await get_session(sender)
 
+
     if not session:
         user = await get_user_by_phone(sender)
         if user:
@@ -147,6 +148,7 @@ async def whatsapp_webhook(request: Request):
         resp = MessagingResponse()
         resp.message(confirmation)
         return Response(content=str(resp), media_type="application/xml")
+
 
     try:
         reply = await generate_response(session, language)
@@ -227,6 +229,7 @@ async def payment_webhook(request: Request):
             contact,
             f"Payment confirmed. Transaction ID: {entity.get('id')}. A doctor will reach you within 24 hours.",
         )
+
 
     return {"status": "ok"}
 
