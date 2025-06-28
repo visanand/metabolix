@@ -11,7 +11,9 @@ load_dotenv()
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 logger = logging.getLogger(__name__)
 
-SYSTEM_PROMPT = """
+PAYMENT_PLACEHOLDER = "<PAYMENT_LINK>"
+
+SYSTEM_PROMPT_TEMPLATE = f"""
 You are an AI health assistant on WhatsApp for a primary care service in India.
 Your goal is to follow this workflow with each user:
 
@@ -32,16 +34,20 @@ Your goal is to follow this workflow with each user:
 
 5. If red flags → recommend doctor consult.
 
-6. If consult accepted → offer ₹49 UPI link.
+6. If consult is accepted, respond with a short sentence
+   containing the token {PAYMENT_PLACEHOLDER}. Do not
+   include any other link text. The backend will
+   replace this token with an actual Razorpay link.
 
 Always say:
 **This is not a diagnosis. Consult a doctor if unsure.**
-Respond in short, clear WhatsApp-friendly format.
+Respond in short, clear WhatsApp-friendly format in {{language}}.
 """
 
-async def generate_response(messages: List[Dict[str, str]]) -> str:
+async def generate_response(messages: List[Dict[str, str]], language: str = "English") -> str:
     """Call OpenAI's API and return the assistant's reply."""
-    chat_messages = [{"role": "system", "content": SYSTEM_PROMPT}] + messages
+    system_prompt = SYSTEM_PROMPT_TEMPLATE.format(language=language)
+    chat_messages = [{"role": "system", "content": system_prompt}] + messages
     try:
         resp = await client.chat.completions.create(
             model="gpt-4",
