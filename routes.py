@@ -11,6 +11,8 @@ from db import (
     save_summary,
     get_user_by_phone,
     update_user_language,
+    append_chat,
+    record_payment,
 )
 from schemas import (
     Consent,
@@ -54,7 +56,7 @@ async def triage(symptom: SymptomData):
 async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     logger.info("Consult requested type=%s", consult_type)
     amount = 99 if consult_type == "audio" else 249
-    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult")
+    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult", payload.user.phone)
     await save_chat({
         "user": payload.user.dict(),
         "symptoms": payload.symptoms.dict(),
@@ -78,7 +80,6 @@ async def whatsapp_webhook(request: Request):
         pass
 
     session = await get_session(sender)
-
     if not session:
         user = await get_user_by_phone(sender)
         if user:
@@ -94,16 +95,20 @@ async def whatsapp_webhook(request: Request):
     try:
         reply = await generate_response(session, language)
 
-
         if PAYMENT_PLACEHOLDER in reply:
-            link = await create_payment_link(99, "AarogyaAI consult")
+            link = await create_payment_link(99, "AarogyaAI consult", sender)
             reply = reply.replace(PAYMENT_PLACEHOLDER, link)
+            await record_payment(
+                sender,
+                {"amount": 99, "link": link, "status": "pending", "time": timestamp()},
+            )
         session.append({"role": "assistant", "content": reply})
     except Exception:
         reply = "Sorry, something went wrong. Please try again."
         session.append({"role": "assistant", "content": reply})
 
     await save_session(sender, session)
+    await append_chat(sender, message, reply, timestamp())
     await save_chat({"phone": sender, "input": message, "output": reply})
 
     resp = MessagingResponse()
@@ -142,6 +147,18 @@ async def payment_webhook(request: Request):
         "raw_payload": payload,
         "time": timestamp()
     })
+
+    contact = entity.get("contact")
+    if contact:
+        await record_payment(
+            contact,
+            {
+                "payment_id": entity.get("id"),
+                "amount": entity.get("amount", 0) / 100,
+                "status": entity.get("status"),
+                "time": timestamp(),
+            },
+        )
 
     return {"status": "ok"}
 

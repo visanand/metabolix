@@ -41,11 +41,26 @@ else:
 # === Async DB Operations ===
 
 async def save_user(user: Dict[str, Any]) -> str:
+    """Create or update a user profile."""
     if db is None:
         raise RuntimeError("Database not configured")
-    res = await db.users.insert_one(user)
-    logger.info("Saved user with id %s", res.inserted_id)
-    return str(res.inserted_id)
+    phone = user.get("phone")
+    if not phone:
+        res = await db.users.insert_one(user)
+        logger.info("Saved user with id %s", res.inserted_id)
+        return str(res.inserted_id)
+
+    await db.users.update_one(
+        {"phone": phone},
+        {
+            "$set": user,
+            "$setOnInsert": {"chats": [], "payments": []},
+        },
+        upsert=True,
+    )
+    doc = await db.users.find_one({"phone": phone}, {"_id": 1})
+    logger.info("Saved user with phone %s", phone)
+    return str(doc["_id"])
 
 async def save_chat(chat: Dict[str, Any]) -> str:
     if db is None:
@@ -53,6 +68,21 @@ async def save_chat(chat: Dict[str, Any]) -> str:
     res = await db.chats.insert_one(chat)
     logger.debug("Saved chat with id %s", res.inserted_id)
     return str(res.inserted_id)
+
+
+async def append_chat(phone: str, user_text: str, bot_text: str, time: str) -> None:
+    """Append a chat message to the user's conversation history."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    await db.users.update_one(
+        {"phone": phone},
+        {
+            "$push": {
+                "chats": {"input": user_text, "output": bot_text, "time": time}
+            }
+        },
+        upsert=True,
+    )
 
 async def save_summary(summary: Dict[str, Any]) -> str:
     if db is None:
@@ -75,3 +105,14 @@ async def update_user_language(phone: str, language: str) -> None:
         raise RuntimeError("Database not configured")
     await db.users.update_one({"phone": phone}, {"$set": {"language": language}})
     logger.debug("Updated language for %s to %s", phone, language)
+
+
+async def record_payment(phone: str, payment: Dict[str, Any]) -> None:
+    """Store a payment event for a user."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    await db.users.update_one(
+        {"phone": phone},
+        {"$push": {"payments": payment}},
+        upsert=True,
+    )

@@ -23,6 +23,7 @@
 - Patient consent capture and DPDP compliance
 - Payment-enabled booking for consultations
 - MongoDB-based storage and retrieval of patient chats & summaries
+- Per-user conversation history with payment logs
 - Automatic language detection with multilingual replies
 - Designed for WhatsApp, mobile, and future voice integrations
 

@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 PAYMENT_PLACEHOLDER = "<PAYMENT_LINK>"
 
 SYSTEM_PROMPT_TEMPLATE = f"""
-
-You are an AI health assistant on WhatsApp for a primary care service in India.
+You are an AI health assistant named AarogyaAI on WhatsApp for a primary care service in India.
 Your goal is to follow this workflow with each user:
 
 1. Greet and ask for consent to proceed.
