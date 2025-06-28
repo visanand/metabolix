@@ -14,13 +14,14 @@ CLIENT = razorpay.Client(
 )
 logger = logging.getLogger(__name__)
 
-async def create_payment_link(amount: int, description: str) -> str:
+async def create_payment_link(amount: int, description: str, phone: str) -> str:
     data = {
         "amount": amount * 100,  # Razorpay accepts paise
         "currency": "INR",
         "description": description,
+        "customer": {"contact": phone},
     }
-    logger.info("Creating payment link for amount %s", amount)
+    logger.info("Creating payment link for amount %s to %s", amount, phone)
     link = await asyncio.to_thread(CLIENT.payment_link.create, data)
     url = link.get("short_url")
     logger.info("Payment link created: %s", url)
@@ -29,7 +30,7 @@ async def create_payment_link(amount: int, description: str) -> str:
 
 def verify_signature(body: bytes, signature: str) -> bool:
     try:
-        razorpay.Utility.verify_webhook_signature(
+        CLIENT.utility.verify_webhook_signature(
             body, signature, os.getenv("RAZORPAY_WEBHOOK_SECRET")
         )
         logger.debug("Payment webhook signature valid")

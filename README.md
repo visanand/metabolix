@@ -8,6 +8,7 @@
 - **Backend**: FastAPI
 - **AI Engine**: OpenAI GPT-4 API (ChatGPT)
 - **Database**: MongoDB Atlas
+- **Session Store**: Redis
 - **Hosting**: Render
 - **Payments**: Razorpay (₹99 for audio/WhatsApp, ₹249 for video consult)
 
@@ -22,6 +23,8 @@
 - Patient consent capture and DPDP compliance
 - Payment-enabled booking for consultations
 - MongoDB-based storage and retrieval of patient chats & summaries
+- Per-user conversation history with payment logs
+- Automatic language detection with multilingual replies
 - Designed for WhatsApp, mobile, and future voice integrations
 
 ---
@@ -42,6 +45,7 @@ MONGODB_URI=your_mongodb_connection_string
 MONGODB_ALLOW_INVALID_CERTS=false
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
+REDIS_URL=redis://redis-17168.crce206.ap-south-1-1.ec2.redns.redis-cloud.com:17168
 BOT_NAME=AarogyaAI
 RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 LOG_LEVEL=INFO

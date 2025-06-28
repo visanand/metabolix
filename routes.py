@@ -2,23 +2,29 @@
 
 import logging
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 
-from chat_engine import generate_response
-from db import save_user, save_chat, save_summary
+from chat_engine import generate_response, PAYMENT_PLACEHOLDER
+from db import (
+    save_user,
+    save_chat,
+    save_summary,
+    get_user_by_phone,
+    update_user_language,
+    append_chat,
+    record_payment,
+)
 from schemas import (
     Consent,
     UserInfo,
     SymptomData,
     Summary,
-    PaymentWebhook,
     StartPayload,
     ConsultRequest,
 )
-from utils import timestamp
+from utils import timestamp, detect_language
 from razorpay_utils import create_payment_link, verify_signature
-from db import db
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from session_store import get_session, save_session
 from twilio.twiml.messaging_response import MessagingResponse
 
 logger = logging.getLogger(__name__)
@@ -50,7 +56,7 @@ async def triage(symptom: SymptomData):
 async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     logger.info("Consult requested type=%s", consult_type)
     amount = 99 if consult_type == "audio" else 249
-    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult")
+    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult", payload.user.phone)
     await save_chat({
         "user": payload.user.dict(),
         "symptoms": payload.symptoms.dict(),
@@ -67,24 +73,45 @@ async def whatsapp_webhook(request: Request):
     sender = form["From"].split(":")[-1]  # Extract phone
     message = form["Body"].strip()
 
-    if sender not in user_sessions:
-        user_sessions[sender] = [{"role": "system", "content": SYSTEM_PROMPT}]
-
-    # Append user message
-    user_sessions[sender].append({"role": "user", "content": message})
-
-    # Get reply
+    language = detect_language(message)
     try:
-        reply = await get_chatgpt_reply(user_sessions[sender])
-        user_sessions[sender].append({"role": "assistant", "content": reply})
-    except Exception as e:
-        reply = "Sorry, something went wrong. Please try again."
-        user_sessions[sender].append({"role": "assistant", "content": reply})
+        await update_user_language(sender, language)
+    except RuntimeError:
+        pass
 
-    # Save interaction to DB
+    session = await get_session(sender)
+
+    if not session:
+        user = await get_user_by_phone(sender)
+        if user:
+            meta = (
+                f"Returning user details: name={user.get('name')}, "
+                f"age={user.get('age')}, gender={user.get('gender')}, "
+                f"pin={user.get('pin')}"
+            )
+            session.append({"role": "system", "content": meta})
+
+    session.append({"role": "user", "content": message})
+
+    try:
+        reply = await generate_response(session, language)
+
+        if PAYMENT_PLACEHOLDER in reply:
+            link = await create_payment_link(99, "AarogyaAI consult", sender)
+            reply = reply.replace(PAYMENT_PLACEHOLDER, link)
+            await record_payment(
+                sender,
+                {"amount": 99, "link": link, "status": "pending", "time": timestamp()},
+            )
+        session.append({"role": "assistant", "content": reply})
+    except Exception:
+        reply = "Sorry, something went wrong. Please try again."
+        session.append({"role": "assistant", "content": reply})
+
+    await save_session(sender, session)
+    await append_chat(sender, message, reply, timestamp())
     await save_chat({"phone": sender, "input": message, "output": reply})
 
-    # Twilio response
     resp = MessagingResponse()
     resp.message(reply)
     return Response(content=str(resp), media_type="application/xml")
@@ -121,6 +148,18 @@ async def payment_webhook(request: Request):
         "raw_payload": payload,
         "time": timestamp()
     })
+
+    contact = entity.get("contact")
+    if contact:
+        await record_payment(
+            contact,
+            {
+                "payment_id": entity.get("id"),
+                "amount": entity.get("amount", 0) / 100,
+                "status": entity.get("status"),
+                "time": timestamp(),
+            },
+        )
 
     return {"status": "ok"}
 
