@@ -53,9 +53,10 @@ async def generate_response(messages: List[Dict[str, str]], language: str = "Eng
             model="gpt-4",
             messages=chat_messages,
             temperature=0.6,
+            timeout=10,
         )
         return resp.choices[0].message.content.strip()
     except Exception as exc:
         logger.exception("OpenAI request failed: %s", exc)
-        return "Sorry, I couldn't process that right now."
+        return "Sorry, I couldn't process that right now. Please try after some time."
 
