@@ -1,4 +1,4 @@
-"""Utility helpers for AarogyaAI."""
+"""Utility helpers for the Metabolix chatbot."""
 
 import re
 from datetime import datetime
@@ -76,4 +76,12 @@ async def send_whatsapp_message(phone: str, text: str) -> None:
         from_=f"whatsapp:{TWILIO_WHATSAPP_NUMBER}",
         to=f"whatsapp:{phone}",
     )
+
+# --- Admin notification helper ---
+ADMIN_PHONE = os.getenv("ADMIN_PHONE", "+919810519452")
+
+
+async def notify_admin(text: str) -> None:
+    """Send a WhatsApp message to the admin number."""
+    await send_whatsapp_message(ADMIN_PHONE, text)
 

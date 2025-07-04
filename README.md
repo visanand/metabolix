@@ -1,6 +1,6 @@
-# AarogyaAI: Conversational Health Assistant for Bharat 🇮🇳
+# Metabolix Chatbot
 
-**AarogyaAI** is an AI-powered multilingual health assistant built for Tier 2 and Tier 3 Indian populations. It provides general health education, symptom triage, supplement guidance, and enables teleconsultations with Registered Medical Practitioners (RMPs) through a secure, compliant, and low-bandwidth interface.
+**Metabolix Chatbot** is an AI-powered assistant for [mymetabolix.com](https://www.mymetabolix.com). It answers questions about weight-loss products, helps users book appointments, accepts product orders and notifies the admin on WhatsApp.
 
 ---
 
@@ -15,19 +15,11 @@
 ---
 
 ## 🚀 Features
-- Conversational chatbot (no form-filling)
-- Symptom triage and health guidance using GPT-4
-- Nutritional and lifestyle suggestions
-- Supplement recommendations (AI scope only)
-- Escalation to RMPs with structured chat summaries
-- Patient consent capture and DPDP compliance
-- Payment-enabled booking for consultations
-- MongoDB-based storage and retrieval of patient chats & summaries
-- Per-user conversation history with payment logs
-- Automatic language detection with multilingual replies
-- Automatic payment confirmation with transaction ID
-- Payment screenshot verification
-- Designed for WhatsApp, mobile, and future voice integrations
+- Conversational product FAQs and weight-loss guidance using GPT-4
+- Appointment booking with optional payment links
+- Product order capture with WhatsApp alerts to admin
+- MongoDB-based storage of chats, orders and appointments
+- Multilingual support
 
 ---
 
@@ -48,7 +40,8 @@ MONGODB_ALLOW_INVALID_CERTS=false
 RAZORPAY_KEY_ID=your_key_id
 RAZORPAY_KEY_SECRET=your_key_secret
 REDIS_URL=redis://redis-17168.crce206.ap-south-1-1.ec2.redns.redis-cloud.com:17168
-BOT_NAME=AarogyaAI
+BOT_NAME=MetabolixBot
+ADMIN_PHONE=+919810519452
 RAZORPAY_WEBHOOK_SECRET=your_webhook_secret
 LOG_LEVEL=INFO
 PORT=8000
