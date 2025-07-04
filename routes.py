@@ -114,6 +114,7 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
 
 @router.post("/whatsapp")
 async def whatsapp_webhook(request: Request):
+    print("Webhook Triggered")
     try:
         form = await request.form()
         sender = form["From"].split(":")[-1]  # Extract phone
