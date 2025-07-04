@@ -1,6 +1,7 @@
 """FastAPI route handlers for AarogyaAI."""
 
 import logging
+import asyncio
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import Response
@@ -113,74 +114,82 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
 
 @router.post("/whatsapp")
 async def whatsapp_webhook(request: Request):
-    form = await request.form()
-    sender = form["From"].split(":")[-1]  # Extract phone
-    message = form["Body"].strip()
-    num_media = int(form.get("NumMedia", 0))
-
-    language = detect_language(message)
     try:
-        await update_user_language(sender, language)
-    except RuntimeError:
-        pass
+        form = await request.form()
+        sender = form["From"].split(":")[-1]  # Extract phone
+        message = form["Body"].strip()
+        num_media = int(form.get("NumMedia", 0))
 
-    session = await get_session(sender)
+        language = detect_language(message)
+        try:
+            await update_user_language(sender, language)
+        except RuntimeError:
+            pass
 
+        session = await get_session(sender)
+        if not session:
+            user = await get_user_by_phone(sender)
+            if user:
+                meta = (
+                    f"Returning user details: name={user.get('name')}, "
+                    f"age={user.get('age')}, gender={user.get('gender')}, "
+                    f"pin={user.get('pin')}"
+                )
+                session.append({"role": "system", "content": meta})
 
-    if not session:
-        user = await get_user_by_phone(sender)
-        if user:
-            meta = (
-                f"Returning user details: name={user.get('name')}, "
-                f"age={user.get('age')}, gender={user.get('gender')}, "
-                f"pin={user.get('pin')}"
-            )
-            session.append({"role": "system", "content": meta})
+        session.append({"role": "user", "content": message or "<media>"})
 
-    session.append({"role": "user", "content": message or "<media>"})
+        confirmation = await confirm_pending_payment(sender)
 
-    confirmation = await confirm_pending_payment(sender)
-    if num_media > 0 and confirmation:
-        session.append({"role": "assistant", "content": confirmation})
+        if num_media > 0 and confirmation:
+            session.append({"role": "assistant", "content": confirmation})
+            await save_session(sender, session)
+            await append_chat(sender, "<media>", confirmation, timestamp())
+            await save_chat({"phone": sender, "input": "<media>", "output": confirmation})
+            resp = MessagingResponse()
+            resp.message(confirmation)
+            return Response(content=str(resp), media_type="application/xml")
+
+        # Ensure OpenAI call is time-limited
+        try:
+            reply = await asyncio.wait_for(generate_response(session, language), timeout=12)
+
+            if PAYMENT_PLACEHOLDER in reply:
+                link = await create_payment_link(99, "AarogyaAI consult", sender)
+                reply = reply.replace(PAYMENT_PLACEHOLDER, link["url"])
+                await record_payment(
+                    sender,
+                    {
+                        "amount": 99,
+                        "link": link["url"],
+                        "link_id": link["id"],
+                        "status": "pending",
+                        "time": timestamp(),
+                    },
+                )
+            if confirmation:
+                reply = f"{confirmation}\n\n{reply}"
+
+        except asyncio.TimeoutError:
+            reply = "Sorry, the system is currently slow. Please try again in a few minutes."
+        except Exception as e:
+            print(f"❌ Error generating reply: {e}")
+            reply = "Sorry, something went wrong. Please try again."
+
+        session.append({"role": "assistant", "content": reply})
         await save_session(sender, session)
-        await append_chat(sender, "<media>", confirmation, timestamp())
-        await save_chat({"phone": sender, "input": "<media>", "output": confirmation})
+        await append_chat(sender, message, reply, timestamp())
+        await save_chat({"phone": sender, "input": message, "output": reply})
+
         resp = MessagingResponse()
-        resp.message(confirmation)
+        resp.message(reply)
         return Response(content=str(resp), media_type="application/xml")
 
-
-    try:
-        reply = await generate_response(session, language)
-
-        if PAYMENT_PLACEHOLDER in reply:
-            link = await create_payment_link(99, "AarogyaAI consult", sender)
-            reply = reply.replace(PAYMENT_PLACEHOLDER, link["url"])
-            await record_payment(
-                sender,
-                {
-                    "amount": 99,
-                    "link": link["url"],
-                    "link_id": link["id"],
-                    "status": "pending",
-                    "time": timestamp(),
-                },
-            )
-        if confirmation:
-            reply = f"{confirmation}\n\n{reply}"
-        session.append({"role": "assistant", "content": reply})
-    except Exception:
-        reply = "Sorry, something went wrong. Please try again."
-        session.append({"role": "assistant", "content": reply})
-
-    await save_session(sender, session)
-    await append_chat(sender, message, reply, timestamp())
-    await save_chat({"phone": sender, "input": message, "output": reply})
-
-    resp = MessagingResponse()
-    resp.message(reply)
-    return Response(content=str(resp), media_type="application/xml")
-
+    except Exception as e:
+        print(f"❌ Top-level webhook error: {e}")
+        fallback = MessagingResponse()
+        fallback.message("Sorry, something went wrong on our side. We'll fix it soon.")
+        return Response(content=str(fallback), media_type="application/xml")
 
 @router.post("/summary")
 async def store_summary(summary: Summary):
