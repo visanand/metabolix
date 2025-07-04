@@ -1,4 +1,4 @@
-"""FastAPI route handlers for AarogyaAI."""
+"""FastAPI route handlers for the Metabolix chatbot."""
 
 import logging
 import asyncio
@@ -16,6 +16,8 @@ from db import (
     append_chat,
     record_payment,
     mark_payment_paid,
+    save_order,
+    save_appointment,
 )
 from schemas import (
     Consent,
@@ -24,8 +26,10 @@ from schemas import (
     Summary,
     StartPayload,
     ConsultRequest,
+    OrderRequest,
+    AppointmentRequest,
 )
-from utils import timestamp, detect_language, send_whatsapp_message
+from utils import timestamp, detect_language, send_whatsapp_message, notify_admin
 from razorpay_utils import (
     create_payment_link,
     verify_signature,
@@ -91,7 +95,7 @@ async def triage(symptom: SymptomData):
 async def consult(payload: ConsultRequest, consult_type: str = "audio"):
     logger.info("Consult requested type=%s", consult_type)
     amount = 99 if consult_type == "audio" else 249
-    link = await create_payment_link(amount, f"AarogyaAI {consult_type} consult", payload.user.phone)
+    link = await create_payment_link(amount, f"Metabolix {consult_type} consult", payload.user.phone)
     await save_chat({
         "user": payload.user.dict(),
         "symptoms": payload.symptoms.dict(),
@@ -110,6 +114,26 @@ async def consult(payload: ConsultRequest, consult_type: str = "audio"):
         },
     )
     return {"payment_link": link["url"]}
+
+
+@router.post("/order")
+async def create_order(order: OrderRequest):
+    """Record a product order and notify the admin."""
+    await save_order(order.dict())
+    await notify_admin(
+        f"New order for {order.product} x{order.quantity} from {order.user.name} ({order.user.phone})"
+    )
+    return {"status": "received"}
+
+
+@router.post("/appointment")
+async def create_appointment(appt: AppointmentRequest):
+    """Record an appointment request and notify the admin."""
+    await save_appointment(appt.dict())
+    await notify_admin(
+        f"New appointment on {appt.datetime} from {appt.user.name} ({appt.user.phone})"
+    )
+    return {"status": "booked"}
 
 
 @router.post("/whatsapp")
@@ -156,7 +180,7 @@ async def whatsapp_webhook(request: Request):
             reply = await asyncio.wait_for(generate_response(session, language), timeout=12)
 
             if PAYMENT_PLACEHOLDER in reply:
-                link = await create_payment_link(99, "AarogyaAI consult", sender)
+                link = await create_payment_link(99, "Metabolix consult", sender)
                 reply = reply.replace(PAYMENT_PLACEHOLDER, link["url"])
                 await record_payment(
                     sender,

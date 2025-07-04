@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for AarogyaAI."""
+"""FastAPI entrypoint for the Metabolix chatbot."""
 
 import logging
 import os
@@ -18,7 +18,7 @@ logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-app = FastAPI(title=os.getenv("BOT_NAME", "AarogyaAI"))
+app = FastAPI(title=os.getenv("BOT_NAME", "MetabolixBot"))
 
 app.add_middleware(
     CORSMiddleware,

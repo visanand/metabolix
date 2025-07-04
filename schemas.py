@@ -1,4 +1,4 @@
-"""Pydantic models for AarogyaAI."""
+"""Pydantic models for the Metabolix chatbot."""
 
 from typing import Optional
 from pydantic import BaseModel, Field
@@ -43,3 +43,14 @@ class Summary(BaseModel):
 
 class PaymentWebhook(BaseModel):
     payload: dict
+
+
+class OrderRequest(BaseModel):
+    user: UserInfo
+    product: str
+    quantity: int = 1
+
+
+class AppointmentRequest(BaseModel):
+    user: UserInfo
+    datetime: str
