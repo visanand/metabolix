@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for AarogyaAI."""
+"""FastAPI entrypoint for the Metabolix chatbot."""
 
 import logging
 import os
@@ -11,14 +11,13 @@ from dotenv import load_dotenv
 from routes import router
 
 from db import db
-print("DB client type:", type(db))
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-app = FastAPI(title=os.getenv("BOT_NAME", "AarogyaAI"))
+app = FastAPI(title=os.getenv("BOT_NAME", "MetabolixBot"))
 
 app.add_middleware(
     CORSMiddleware,

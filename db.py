@@ -126,3 +126,21 @@ async def mark_payment_paid(phone: str, link_id: str, payment_id: str) -> None:
         {"phone": phone, "payments.link_id": link_id},
         {"$set": {"payments.$.status": "paid", "payments.$.payment_id": payment_id}},
     )
+
+
+async def save_order(order: Dict[str, Any]) -> str:
+    """Store a product order."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    res = await db.orders.insert_one(order)
+    logger.info("Saved order with id %s", res.inserted_id)
+    return str(res.inserted_id)
+
+
+async def save_appointment(appointment: Dict[str, Any]) -> str:
+    """Store an appointment request."""
+    if db is None:
+        raise RuntimeError("Database not configured")
+    res = await db.appointments.insert_one(appointment)
+    logger.info("Saved appointment with id %s", res.inserted_id)
+    return str(res.inserted_id)
