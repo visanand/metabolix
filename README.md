@@ -27,8 +27,8 @@
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/yourusername/aarogyaai.git
-cd aarogyaai
+git clone https://github.com/yourusername/metabolix-chatbot.git
+cd metabolix-chatbot
 ```
 
 ### 2. Setup environment variables
@@ -81,7 +81,7 @@ pytest
 
 ## 📦 Folder Structure
 ```
-/aarogyaai
+/metabolix-chatbot
 │
 ├── main.py               # FastAPI app
 ├── chat_engine.py        # GPT-4 logic integration
@@ -112,12 +112,12 @@ Built with ❤️ to serve India's growing need for accessible, digital-first he
 
 ## 📫 Contact / Collaboration
 Interested in contributing, testing, or partnering?
-Email us at [contact@aarogyaai.in](mailto:contact@aarogyaai.in)
+Email us at [support@mymetabolix.com](mailto:support@mymetabolix.com)
 
 ---
 
 ## 📜 Prompt Specification
-For the complete design prompt guiding AarogyaAI's features and compliance goals, see [PROMPT.md](PROMPT.md).
+For the complete design prompt guiding Metabolix Chatbot's features and compliance goals, see [PROMPT.md](PROMPT.md).
 
 ---
 

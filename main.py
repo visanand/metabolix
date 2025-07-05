@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 from routes import router
 
 from db import db
-print("DB client type:", type(db))
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level, logging.INFO))

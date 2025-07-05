@@ -1,6 +1,6 @@
-Prompt for Codex to develop a conversational AI healthcare assistant named 'AarogyaAI'.
+Prompt for Codex to develop a conversational AI assistant named **Metabolix Chatbot**.
 
-AarogyaAI is a multilingual, conversational health assistant designed for Tier 2 and Tier 3 Indian populations. It provides symptom triage, wellness guidance, supplement recommendations, lab test suggestions, and escalates to an RMP for appropriate conditions, while complying with India's Telemedicine Practice Guidelines 2020 and DPDP Act.
+Metabolix Chatbot helps users of mymetabolix.com learn about weight-loss programs and products. It can book appointments, collect orders and escalate to doctors as needed while following India's Telemedicine Practice Guidelines 2020 and DPDP Act.
 
 This chatbot is built using Python (FastAPI backend), hosted on Render, connected to a MongoDB Atlas instance, and uses ChatGPT (GPT-4) API as the conversational engine.
 
@@ -53,7 +53,7 @@ Use fallback clarifying messages in case of ambiguous inputs
 
 === SAMPLE CONVERSATION SNIPPET ===
 User: "Hello"
-Bot: "Namaste 👏 I’m AarogyaAI, your health buddy. I can give health tips, guide you on symptoms, and connect you to a doctor if needed. Do you agree to share your health info so I can help you better? (Yes/No)"
+Bot: "Hi! 👋 Welcome to Metabolix. Can I share some health-related info with you? ✅ Type 'Yes' to continue. 🌐 https://www.mymetabolix.com"
 
 User: "Yes"
 Bot: "Great! Let’s begin. What’s your name?"
