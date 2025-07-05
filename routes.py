@@ -138,7 +138,7 @@ async def create_appointment(appt: AppointmentRequest):
 
 @router.post("/whatsapp")
 async def whatsapp_webhook(request: Request):
-    print("Webhook Triggered")
+    logger.debug("Webhook triggered")
     try:
         form = await request.form()
         sender = form["From"].split(":")[-1]  # Extract phone
@@ -198,7 +198,7 @@ async def whatsapp_webhook(request: Request):
         except asyncio.TimeoutError:
             reply = "Sorry, the system is currently slow. Please try again in a few minutes."
         except Exception as e:
-            print(f"❌ Error generating reply: {e}")
+            logger.exception("Error generating reply: %s", e)
             reply = "Sorry, something went wrong. Please try again."
 
         session.append({"role": "assistant", "content": reply})
@@ -211,7 +211,7 @@ async def whatsapp_webhook(request: Request):
         return Response(content=str(resp), media_type="application/xml")
 
     except Exception as e:
-        print(f"❌ Top-level webhook error: {e}")
+        logger.exception("Top-level webhook error: %s", e)
         fallback = MessagingResponse()
         fallback.message("Sorry, something went wrong on our side. We'll fix it soon.")
         return Response(content=str(fallback), media_type="application/xml")

@@ -1,6 +1,6 @@
-# Agents Configuration for AarogyaAI
+# Agents Configuration for Metabolix Chatbot
 
-This `agents.md` file documents the configuration of agents used in the **AarogyaAI** project, compliant with Codex guidelines. Agents here refer to logic components or API-backed services responsible for distinct tasks in the chatbot system.
+This `agents.md` file documents the configuration of agents used in the **Metabolix Chatbot** project, compliant with Codex guidelines. Agents here refer to logic components or API-backed services responsible for distinct tasks in the chatbot system.
 
 ---
 
