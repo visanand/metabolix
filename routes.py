@@ -177,7 +177,7 @@ async def whatsapp_webhook(request: Request):
 
         # Ensure OpenAI call is time-limited
         try:
-            reply = await asyncio.wait_for(generate_response(session, language), timeout=12)
+            reply = await asyncio.wait_for(generate_response(session, language), timeout=60)
 
             if PAYMENT_PLACEHOLDER in reply:
                 link = await create_payment_link(99, "Metabolix consult", sender)
