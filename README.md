@@ -20,6 +20,7 @@
 - Product order capture with WhatsApp alerts to admin
 - MongoDB-based storage of chats, orders and appointments
 - Multilingual support
+- Automatic nudge if a user is inactive for over 20 hours
 
 ---
 

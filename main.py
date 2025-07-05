@@ -2,6 +2,7 @@
 
 import logging
 import os
+import asyncio
 from typing import Optional
 
 from fastapi import FastAPI
@@ -11,6 +12,7 @@ from dotenv import load_dotenv
 from routes import router
 
 from db import db
+from nudge import start_nudge_loop
 
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(level=getattr(logging, log_level, logging.INFO))
@@ -35,6 +37,12 @@ async def health_check() -> dict[str, str]:
     return {"status": "ok"}
 
 app.include_router(router)
+
+
+@app.on_event("startup")
+async def start_tasks() -> None:
+    """Launch background tasks on startup."""
+    asyncio.create_task(start_nudge_loop())
 
 
 if __name__ == "__main__":
