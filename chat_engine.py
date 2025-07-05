@@ -110,10 +110,10 @@ async def generate_response(messages: List[Dict[str, str]], language: str = "Eng
     chat_messages = [{"role": "system", "content": system_prompt}] + messages
     try:
         resp = await client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-3.5-turbo",
             messages=chat_messages,
             temperature=0.6,
-            timeout=10,
+            timeout=1000,
         )
         return resp.choices[0].message.content.strip()
     except Exception as exc:
