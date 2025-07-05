@@ -34,8 +34,7 @@ AI will never diagnose or prescribe medications.
 
 4. ESCALATION:
 If medical consult needed:
-- Offer WhatsApp/audio consult → Razorpay ₹99 payment link
-- Offer video consult → Razorpay ₹249 payment link (15 min)
+- Offer video consult → Razorpay ₹499 payment link (15 min)
 
 5. DATABASE INTEGRATION (MongoDB):
 - Store user profile, chat history, symptoms, suggestions, consent, and timestamps
